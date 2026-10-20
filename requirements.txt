@@ -1,0 +1,11 @@
+requests
+pyyaml
+python-dotenv
+pydantic>=2
+pytest
+
+# 3단계 LLM 분류부터 필요 (쓰는 제공사 패키지를 추가 설치: 예 langchain-google-genai / langchain-anthropic)
+langchain>=1.0
+
+# 5단계 에이전트에서 필요
+langgraph>=1.0

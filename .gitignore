@@ -1,0 +1,19 @@
+# 비밀 / 개인정보
+.env
+profile.yaml
+*.pem
+
+# 수집 데이터 (사람인 원본 공고, DB, 로그, 백업, 리포트, 라벨링 파일)
+data/*
+!data/.gitkeep
+*.db
+*.sqlite
+
+# 생성물
+output/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+.DS_Store

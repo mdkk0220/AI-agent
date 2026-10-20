@@ -1,0 +1,27 @@
+# 이 파일을 profile.yaml 로 복사해서 "사실만" 채우세요. (profile.yaml 은 git 에 올라가지 않습니다)
+# 4단계 스킬 갭 분석과 5단계 에이전트(자소서 초안)가 이 파일만을 근거로 씁니다.
+# 없는 경력/수치/기술은 적지 마세요. 나중에 자소서 환각 검사의 기준이 됩니다.
+name: 홍길동
+major: 의료IT공학과
+status: 신입
+education: "OO대학교 의료IT공학과 (졸업예정)"
+coding_experience: "대학 4년 + 코딩 학원 1년 이상"
+
+skills: [Python, Java, SQL, Git]          # TODO: 실제로 쓸 수 있는 것만 (분석 시 '내 스킬'로 쓰임)
+
+projects:                                  # TODO: 실제 프로젝트로 교체 (STAR: 상황/과제/행동/결과)
+  - name: 프로젝트 이름
+    summary: 무엇을 만들었는지 한두 문장
+    stack: [Python, SQL]
+    my_role: 내가 맡은 부분
+    result: 확인 가능한 결과만 (없으면 비워두기)
+
+certifications: []                         # 예: 정보처리기사, SQLD (실제 취득한 것만)
+
+target:
+  roles: [백엔드, 데이터분석]
+  keywords: [의료, 헬스케어, 백엔드]
+  regions: [서울, 경기]
+
+min_score: 60
+max_drafts: 3
