@@ -1,0 +1,11 @@
+# 수집 설정 (비밀 값 없음: 키는 .env 에만 둡니다)
+source: rocketpunch
+
+# 키워드 없이 전체 공고를 받음 (로켓펀치 전체가 약 400건이라 가능)
+keywords: [""]
+
+page_size: 50                 # 1회 호출당 공고 수 (API 최대 50)
+request_delay_sec: 1.5        # 호출 사이 대기 (분당 60회 한도 → 분당 40회로 유지)
+max_requests_per_day: 1500    # 하루 호출 상한 (공식 한도는 하루 5,000회)
+retries: 3                    # 429/5xx/네트워크 오류 재시도 횟수
+backup_keep: 14               # DB 백업 보관 개수

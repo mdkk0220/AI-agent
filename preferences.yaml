@@ -1,0 +1,14 @@
+# 내 조건 (v0, 2026-10-20) — 일주일 데이터를 보고 조정
+# must: 하나라도 어기면 제외 / prefer: 맞으면 점수를 더함 (제외하지 않음)
+
+must:
+  it_job: true            # IT 직무만
+  beginner: true          # 신입 가능 공고만 (seniorities 에 BEGINNER 포함)
+
+prefer:
+  job_groups: [웹 개발, 모바일 앱, 데이터, AI·LLM 개발]   # 관심 직무
+  company_size: [MEDIUM, LARGE, HUGE]                      # 중견 이상 선호 (작은 회사도 제외하지는 않음)
+  employment: [FULL_TIME, INTERN]                          # 정규직·채용전환형 인턴 우대 (계약직은 감점 없음)
+
+ignore:
+  work_type: true         # 근무 형태 (출근/하이브리드/재택)

@@ -23,7 +23,12 @@ import requests
 from dotenv import load_dotenv
 
 ROOT = Path(__file__).resolve().parent.parent
-ENDPOINT = "https://openapi.rocketpunch.com/api/v1/jobs"
+# 공식 문서의 주소와, 실제 서버 응답(details: api/api/v1/jobs)을 보고 추정한 주소를 차례로 시도한다.
+ENDPOINTS = [
+    "https://openapi.rocketpunch.com/api/v1/jobs",
+    "https://openapi.rocketpunch.com/v1/jobs",
+]
+ENDPOINT = ENDPOINTS[0]
 LONG_TEXT = 300  # 이 글자 수 이상이면 '본문 후보'로 표시
 
 
@@ -48,6 +53,18 @@ def describe(x, indent=0, key="", long_fields=None, path=""):
         print(f"{pad}{key}{type(x).__name__}")
 
 
+def _print_error_body(r) -> None:
+    """에러 응답의 code/message/details 를 보여 준다 (에러 본문에는 키가 들어 있지 않다)."""
+    try:
+        body = r.json()
+    except ValueError:
+        return
+    if isinstance(body, dict):
+        for k in ("code", "message", "details"):
+            if k in body:
+                print(f"    {k}: {str(body[k])[:120]}")
+
+
 def main(argv=None) -> int:
     load_dotenv(ROOT / ".env")
     keyword = (argv or sys.argv[1:] or ["백엔드"])[0]
@@ -62,11 +79,18 @@ def main(argv=None) -> int:
         print("키가 rp_app_ 로 시작하지 않습니다. 복사할 때 앞뒤 공백이나 잘림이 없는지 확인하세요.")
         return 2
 
-    try:
-        r = requests.get(ENDPOINT, params={"keyword": keyword}, headers={"X-RP-API-Key": key}, timeout=15)
-    except requests.RequestException as e:  # 예외 문자열에 URL 이 들어갈 수 있어 종류만 출력
-        print(f"네트워크 오류: {type(e).__name__}")
-        return 1
+    r = None
+    for url in ENDPOINTS:
+        try:
+            r = requests.get(url, params={"keyword": keyword}, headers={"X-RP-API-Key": key}, timeout=15)
+        except requests.RequestException as e:  # 예외 문자열에 URL 이 들어갈 수 있어 종류만 출력
+            print(f"네트워크 오류: {type(e).__name__}")
+            return 1
+        print(f"[시도] {url} → HTTP {r.status_code}")
+        if r.status_code != 404:
+            print(f"✔ 동작하는 주소: {url}  ← 이 주소를 수집 코드에 사용합니다\n")
+            break
+        _print_error_body(r)
 
     print(f"HTTP {r.status_code}  (검색어: {keyword})")
     remaining = r.headers.get("X-RP-RateLimit-Remaining")
@@ -80,6 +104,9 @@ def main(argv=None) -> int:
         return 1
     if r.status_code == 403:
         print("키는 유효하지만 이 리소스에 대한 권한이 없습니다.")
+        return 1
+    if r.status_code >= 400:
+        print("요청이 실패했습니다. 위의 에러 내용(code/message/details)을 알려 주세요.")
         return 1
 
     try:
