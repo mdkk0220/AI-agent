@@ -9,3 +9,6 @@ langchain>=1.0
 
 # 5단계 에이전트에서 필요
 langgraph>=1.0
+
+# 화면 (Streamlit)
+streamlit>=1.50
