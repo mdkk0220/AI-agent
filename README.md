@@ -4,7 +4,7 @@
 ![LangGraph](https://img.shields.io/badge/Agent-LangGraph-1C3C3C)
 ![Streamlit](https://img.shields.io/badge/UI-Streamlit-FF4B4B?logo=streamlit&logoColor=white)
 ![SQLite](https://img.shields.io/badge/DB-SQLite-003B57?logo=sqlite&logoColor=white)
-![Tests](https://img.shields.io/badge/tests-17%20passed-brightgreen)
+[![tests](https://github.com/mdkk0220/AI-agent/actions/workflows/tests.yml/badge.svg)](https://github.com/mdkk0220/AI-agent/actions/workflows/tests.yml)
 
 **채용 공고를 매일 모으고, 내 기술과 맞는 공고를 골라 주고, 자소서 초안까지 써 주는 개인 취업 준비 에이전트입니다.**
 
