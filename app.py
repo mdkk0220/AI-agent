@@ -174,6 +174,18 @@ def page_jobs(rows, total, n_it, profile_ok):
 STATUS_LABEL = {"ok": ":green-badge[근거 있음]", "todo": ":orange-badge[TODO]", "remove": ":gray-badge[제거됨]"}
 
 
+def draft_source(sentences) -> str:
+    """초안을 LLM 이 썼는지 템플릿이 썼는지 (LLM 이 실패해서 템플릿으로 대신했으면 그 이유까지)"""
+    sources = {s.get("source") for s in sentences if s.get("source") or s.get("evidence") != "직접 수정"}
+    sources.discard(None)
+    if "llm" in sources:
+        return "LLM (Gemini)"
+    fail = next((x for x in sources if str(x).startswith("template (LLM 실패")), None)
+    if fail:
+        return "템플릿 — " + str(fail)[len("template ("):-1]
+    return "템플릿 (.env 에 DRAFTER=llm 이 없거나 읽히지 않음)"
+
+
 def render_sentences(sentences):
     for s in sentences:
         label = STATUS_LABEL[s["status"]]
@@ -229,6 +241,7 @@ def page_draft(rows, profile, profile_ok):
     summary = factcheck.summary(sentences)
     with mid:
         st.markdown(f"#### 초안 (재작성 {run['rewrites']}/2회)")
+        st.caption("초안 작성기: " + draft_source(sentences))
         if st.toggle("직접 수정하기"):
             text = st.text_area("문단마다 빈 줄로 나눕니다", "\n\n".join(s["text"] for s in sentences if s["status"] != "remove"), height=320)
             if st.button("수정 반영하고 팩트체크"):
