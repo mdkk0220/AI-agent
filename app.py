@@ -22,6 +22,10 @@ TIERS = ["전체", "통과", "후보(주니어 포함)"]
 SIZE_LABEL = {"TINY": "TINY(아주 작음)", "SMALL": "SMALL(작음)", "MEDIUM": "MEDIUM(중간)", "LARGE": "LARGE(큼)", "HUGE": "HUGE(아주 큼)"}
 
 
+# profile.yaml 의 skills 묶음 이름이 영어일 때 보여 줄 한글 이름
+GROUP_LABEL = {"languages": "언어", "web": "웹", "ai": "AI·LLM", "tools": "도구", "data": "데이터", "main": "주력"}
+
+
 def size_label(s: str) -> str:
     return SIZE_LABEL.get(s or "", s or "규모 정보 없음")
 
@@ -288,15 +292,18 @@ def page_profile(profile, profile_ok):
         st.warning("profile.yaml 이 없습니다. profile.example.yaml 을 복사해서 만들어 주세요.")
         return
     st.write(f"**전공 · 상태** {profile.get('major') or ''} · {profile.get('status') or ''}")
-    st.write(f"**학력** {profile.get('education') or '(비어 있음)'}")
+    if profile.get("education"):
+        st.write(f"**학력** {profile['education']}")
     st.write(f"**코딩 경력** {profile.get('coding_experience') or '(비어 있음)'}")
     skills = profile.get("skills")
     if isinstance(skills, dict):
         for k, v in skills.items():
-            st.write(f"**{k}** " + (", ".join(map(str, v)) if v else "(비어 있음)"))
-    else:
-        st.write("**기술** " + ", ".join(map(str, skills or [])))
-    st.write("**배우려는 것** " + (", ".join(map(str, profile.get("to_learn") or [])) or "(비어 있음)"))
+            if v:  # 비어 있는 묶음은 보여 주지 않는다
+                st.write(f"**{GROUP_LABEL.get(str(k), k)}** " + ", ".join(map(str, v)))
+    elif skills:
+        st.write("**기술** " + ", ".join(map(str, skills)))
+    if profile.get("to_learn"):
+        st.write("**배우려는 것** " + ", ".join(map(str, profile["to_learn"])))
     projects = [x for x in (profile.get("projects") or []) if isinstance(x, dict) and (x.get("name") or "").strip()]
     st.subheader(f"프로젝트 {len(projects)}개")
     for x in projects:
@@ -304,6 +311,8 @@ def page_profile(profile, profile_ok):
             st.markdown(f"**{x['name']}** {x.get('period') or ''}")
             st.write(x.get("summary") or "")
             st.caption(f"역할: {x.get('my_role') or '(비어 있음)'} · 기술: {', '.join(x.get('stack') or [])}")
+            if x.get("result"):
+                st.caption(f"결과: {x['result']}")
     if not projects:
         st.info("프로젝트가 비어 있습니다.")
 
