@@ -6,6 +6,12 @@ draft(posting, profile, banned) → 문장 목록 [{"text", "kind", "evidence"}]
 나중에 LLM 으로 바꿀 때도 이 함수의 입력과 출력 모양만 지키면 되고, 팩트체크는 그대로 쓴다.
 프로필에 없는 내용은 지어내지 않고 [TODO] 문장으로 남긴다.
 """
+import os
+
+from dotenv import load_dotenv
+
+from agent import llm_drafter
+from collector import storage
 from matching.skills import flatten_skills
 
 
@@ -19,6 +25,17 @@ def _projects(profile: dict) -> list[dict]:
 
 
 def draft(posting: dict, profile: dict, banned: list[str] | None = None) -> list[dict]:
+    """환경변수 DRAFTER=llm 이면 LLM 으로 쓰고, 안 되면 템플릿으로 대신한다 (대신한 이유는 문장의 source 에 남김)."""
+    load_dotenv(storage.ROOT / ".env")
+    if (os.getenv("DRAFTER") or "").strip().lower() == "llm":
+        try:
+            return llm_drafter.draft(posting, profile, banned)
+        except llm_drafter.LlmUnavailable as e:
+            return [{**s, "source": f"template (LLM 실패: {e})"} for s in draft_template(posting, profile, banned)]
+    return draft_template(posting, profile, banned)
+
+
+def draft_template(posting: dict, profile: dict, banned: list[str] | None = None) -> list[dict]:
     banned = set(banned or [])
     title = posting.get("title") or "공고"
     out: list[dict] = [{"text": f"{title} 포지션에 지원합니다.", "kind": "intro", "evidence": "공고 제목"}]
