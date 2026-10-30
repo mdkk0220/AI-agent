@@ -57,6 +57,7 @@ def test_draft_filters_banned(monkeypatch):
 
 
 def test_dispatch_falls_back_to_template_and_says_why(monkeypatch):
+    monkeypatch.setattr(drafter, "load_dotenv", lambda *_: None)
     monkeypatch.setenv("DRAFTER", "llm")
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     out = drafter.draft(POSTING, PROFILE)
@@ -64,6 +65,7 @@ def test_dispatch_falls_back_to_template_and_says_why(monkeypatch):
 
 
 def test_template_is_default(monkeypatch):
+    monkeypatch.setattr(drafter, "load_dotenv", lambda *_: None)
     monkeypatch.delenv("DRAFTER", raising=False)
     assert all("source" not in s for s in drafter.draft(POSTING, PROFILE))
 
