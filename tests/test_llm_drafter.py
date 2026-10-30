@@ -80,3 +80,11 @@ def test_factcheck_removes_invented_number_and_tech():
 def test_factcheck_numbers_ignored_for_motive():
     m = {"text": "공고의 24시간 운영 업무에 기여하고 싶습니다.", "kind": "motive", "evidence": ""}
     assert factcheck.check_sentence(m, PROFILE)["status"] == "ok"
+
+
+def test_own_names_uses_profile_names_not_group_names():
+    from agent.drafter import own_names
+    out = own_names(["Django/FastAPI/Flask", "LangChain/LangGraph", "Python", "SQL"],
+                    ["Python", "Flask", "LangGraph", "SQLite"])
+    assert out == ["Flask", "LangGraph", "Python", "SQL"]
+    assert "Django" not in " ".join(out)

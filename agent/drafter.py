@@ -12,12 +12,25 @@ from dotenv import load_dotenv
 
 from agent import llm_drafter
 from collector import storage
+from analysis.report import TECH
 from matching.skills import flatten_skills
 
 
 def _group(profile: dict, key: str) -> list[str]:
     s = profile.get("skills")
     return [str(x) for x in (s.get(key) or [])] if isinstance(s, dict) else []
+
+
+def own_names(have: list[str], skills: list[str]) -> list[str]:
+    """공고와 일치한 기술의 '묶음 이름'(예: Django/FastAPI/Flask)을 내 프로필에 적힌 이름(예: Flask)으로 바꾼다.
+    묶음 이름 그대로 쓰면 Django 나 FastAPI 도 써 본 것처럼 읽히기 때문이다."""
+    mine_low = {s.lower().strip(): s for s in skills}
+    out = []
+    for name in have:
+        words = [name.lower()] + [w.lower() for w in TECH.get(name, [])]
+        own = [mine_low[w] for w in words if w in mine_low]
+        out.extend(own or [name])  # 내 이름을 못 찾으면(SQL 처럼 파생된 것) 원래 이름
+    return list(dict.fromkeys(out))
 
 
 def _projects(profile: dict) -> list[dict]:
@@ -47,7 +60,7 @@ def draft_template(posting: dict, profile: dict, banned: list[str] | None = None
     elif major:
         out.append({"text": f"저는 {major} 전공입니다.", "kind": "claim", "evidence": "프로필의 전공"})
 
-    have = list(posting.get("have") or [])
+    have = own_names(list(posting.get("have") or []), flatten_skills(profile))
     if have:
         shown = ", ".join(have[:4])
         out.append({"text": f"{shown} 등을 사용해 본 경험이 있습니다.", "kind": "claim",

@@ -23,6 +23,11 @@ SIZE_LABEL = {"TINY": "TINY(아주 작음)", "SMALL": "SMALL(작음)", "MEDIUM":
 
 
 # profile.yaml 의 skills 묶음 이름이 영어일 때 보여 줄 한글 이름
+def esc(text) -> str:
+    """마크다운에서 ~ 두 개 사이가 취소선이 되는 것을 막는다 (예: '2026.05~06 … 2025.03~06')"""
+    return str(text).replace("~", "\\~")
+
+
 GROUP_LABEL = {"languages": "언어", "web": "웹", "ai": "AI·LLM", "tools": "도구", "data": "데이터", "main": "주력"}
 
 
@@ -173,9 +178,9 @@ def render_sentences(sentences):
     for s in sentences:
         label = STATUS_LABEL[s["status"]]
         if s["status"] == "remove":
-            st.markdown(f"~~{s['text']}~~")
+            st.markdown(f"~~{esc(s['text'])}~~")
         else:
-            st.markdown(s["text"])
+            st.markdown(esc(s["text"]))
         st.caption(f"{label} {s.get('reason', '')}")
 
 
@@ -213,12 +218,12 @@ def page_draft(rows, profile, profile_ok):
         st.write("**써 본 기술** " + (", ".join(sk.flatten_skills(profile)[:8]) or "(비어 있음)"))
         projects = [x for x in (profile.get("projects") or []) if isinstance(x, dict) and (x.get("name") or "").strip()]
         if projects:
-            st.write("**프로젝트** " + ", ".join(x["name"] for x in projects))
+            st.write("**프로젝트** " + esc(", ".join(x["name"] for x in projects)))
         else:
             st.warning("프로젝트가 비어 있습니다. 사례가 필요한 문장은 지어내지 않고 TODO로 남깁니다.")
         duty = " ".join((posting.get("duty") or "").split())
         if duty:
-            st.write("**공고의 주요 업무** " + duty[:200])
+            st.write("**공고의 주요 업무** " + esc(duty[:200]))
 
     sentences = run["sentences"]
     summary = factcheck.summary(sentences)
@@ -308,7 +313,7 @@ def page_profile(profile, profile_ok):
     st.subheader(f"프로젝트 {len(projects)}개")
     for x in projects:
         with st.container(border=True):
-            st.markdown(f"**{x['name']}** {x.get('period') or ''}")
+            st.markdown(f"**{esc(x['name'])}** {esc(x.get('period') or '')}")
             st.write(x.get("summary") or "")
             st.caption(f"역할: {x.get('my_role') or '(비어 있음)'} · 기술: {', '.join(x.get('stack') or [])}")
             if x.get("result"):
