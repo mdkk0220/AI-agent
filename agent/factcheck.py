@@ -34,6 +34,26 @@ def unknown_numbers(text: str, profile: dict) -> list[str]:
     return sorted({n.rstrip(".,") for n in NUM_RX.findall(text) if n.rstrip(".,") and n.rstrip(".,") not in known})
 
 
+def project_short(project: dict) -> str:
+    """'AI-agent (채용 공고 기반 …)' → 'AI-agent'"""
+    return str(project.get("name") or "").split("(")[0].strip()
+
+
+def tech_outside_project(text: str, profile: dict) -> tuple[str, list[str]] | None:
+    """문장이 프로젝트를 정확히 하나 언급하면, 그 문장의 기술이 그 프로젝트의 stack 에 있는지 본다.
+    (여러 프로젝트의 기술을 한 문장에 섞어서 '이 프로젝트에서 썼다'로 읽히는 것을 막는다)
+    반환: (프로젝트 이름, stack 에 없는 기술들) 또는 None"""
+    low = text.lower()
+    hit = [p for p in (profile.get("projects") or []) if isinstance(p, dict) and project_short(p)
+           and project_short(p).lower() in low]
+    if len(hit) != 1 or not hit[0].get("stack"):
+        return None
+    own_text = " ".join(str(hit[0].get(k) or "") for k in ("name", "summary", "my_role", "result"))
+    allowed = my_tech([str(x) for x in hit[0]["stack"]]) | mentioned_tech(own_text)  # stack 과 프로젝트 설명에 적힌 기술
+    extra = sorted(mentioned_tech(text) - allowed)
+    return (project_short(hit[0]), extra) if extra else None
+
+
 def check_sentence(sentence: dict, profile: dict) -> dict:
     """sentence: {"text", "kind": claim|motive|intro|todo, "evidence": str}  →  status, reason 을 채워서 돌려준다."""
     out = dict(sentence)
@@ -49,6 +69,8 @@ def check_sentence(sentence: dict, profile: dict) -> dict:
     bad_nums = unknown_numbers(text, profile)
     if missing:
         out.update(status="remove", reason=f"프로필에 {', '.join(missing)}이(가) 없습니다")
+    elif (outside := tech_outside_project(text, profile)):
+        out.update(status="remove", reason=f"{outside[0]} 프로젝트의 기술에 없습니다: {', '.join(outside[1])}")
     elif bad_nums:
         out.update(status="remove", reason=f"프로필에 없는 숫자입니다: {', '.join(bad_nums)}")
     else:

@@ -97,3 +97,16 @@ def test_http_errors_have_helpful_messages(monkeypatch):
         monkeypatch.setattr(ld.requests, "post", lambda *a, code=code, **k: R(code))
         with pytest.raises(ld.LlmUnavailable, match=word):
             ld.call_gemini("p", "k", "m")
+
+
+def test_factcheck_blocks_tech_mixed_across_projects():
+    prof = {"skills": {"a": ["Python", "PyTorch", "LangGraph", "Streamlit"]},
+            "projects": [{"name": "AI-agent (취업 에이전트)", "stack": ["Python", "LangGraph", "Streamlit"]},
+                         {"name": "knee-oa-classifier (X-ray)", "stack": ["Python", "PyTorch"], "my_role": "ResNet50 모델 구현"}]}
+    mixed = {"text": "knee-oa-classifier 에서 LangGraph 와 PyTorch 를 활용했습니다.", "kind": "claim", "evidence": ""}
+    r = factcheck.check_sentence(mixed, prof)
+    assert r["status"] == "remove" and "LangGraph" in r["reason"]
+    fine = {"text": "knee-oa-classifier 에서 PyTorch 로 ResNet50 을 구현했습니다.", "kind": "claim", "evidence": ""}
+    assert factcheck.check_sentence(fine, prof)["status"] == "ok"
+    two = {"text": "AI-agent 와 knee-oa-classifier 에서 Python 을 썼습니다.", "kind": "claim", "evidence": ""}
+    assert factcheck.check_sentence(two, prof)["status"] == "ok"
