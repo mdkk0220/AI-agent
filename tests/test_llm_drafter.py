@@ -88,3 +88,12 @@ def test_own_names_uses_profile_names_not_group_names():
                     ["Python", "Flask", "LangGraph", "SQLite"])
     assert out == ["Flask", "LangGraph", "Python", "SQL"]
     assert "Django" not in " ".join(out)
+
+
+def test_http_errors_have_helpful_messages(monkeypatch):
+    class R:
+        def __init__(self, code): self.status_code = code
+    for code, word in ((404, "GEMINI_MODEL"), (403, "API 키"), (429, "429")):
+        monkeypatch.setattr(ld.requests, "post", lambda *a, code=code, **k: R(code))
+        with pytest.raises(ld.LlmUnavailable, match=word):
+            ld.call_gemini("p", "k", "m")

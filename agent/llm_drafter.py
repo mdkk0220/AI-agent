@@ -16,7 +16,7 @@ import yaml
 from matching.skills import flatten_skills
 
 URL = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
-DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_MODEL = "gemini-3.5-flash-lite"  # security-agent-toolkit 의 config.json 에서 쓰던 모델. 바꾸려면 .env 의 GEMINI_MODEL
 KINDS = {"claim", "motive", "intro"}
 MAX_SENTENCES = 8
 
@@ -96,6 +96,10 @@ def call_gemini(prompt: str, api_key: str, model: str, timeout: int = 40) -> str
     )
     if resp.status_code == 429:
         raise LlmUnavailable("호출 한도(429): 1분 뒤 다시 시도하세요")
+    if resp.status_code == 404:
+        raise LlmUnavailable(f"HTTP 404: 모델 이름이 없거나 쓸 수 없습니다 ({model}). .env 의 GEMINI_MODEL 을 확인하세요")
+    if resp.status_code in (400, 401, 403):
+        raise LlmUnavailable(f"HTTP {resp.status_code}: API 키가 올바른지 확인하세요")
     if resp.status_code != 200:
         raise LlmUnavailable(f"HTTP {resp.status_code}")
     try:
